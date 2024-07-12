@@ -3,6 +3,7 @@ from pattern import TestPattern
 from test import AbsTest
 import json
 import os
+from excel_work import create_excel_table, print_excel_file
 
 dpg.create_context()
 dpg.create_viewport(title="Title", clear_color=(50, 50, 50, 255))
@@ -225,6 +226,7 @@ def show_result_window():
                          "29": 0, "30": 0}
         for _test in __PASSED_TESTS_NAMES["Опросник ВСК"]:
             if len(__PASSED_TESTS_NAMES["Опросник ВСК"]) == 1 and len(_test[1]) == 30:
+                create_excel_table(*_test)
                 count_self_control = int()
                 count_persistence = int()
                 count_general_index = int()
@@ -274,6 +276,30 @@ def show_result_window():
                        pos=((width_w_results - 120) // 2, (height_w_results - 200)))
 
 
+def close_w_printing_result():
+    dpg.delete_item("w_printing_result")
+
+
+def printing_results():
+    height = dpg.get_viewport_height() - 33
+    width = dpg.get_viewport_width() - 14
+    with dpg.window(tag="w_printing_result", modal=True, height=height, width=width, no_title_bar=True, no_move=True,
+                    no_resize=True):
+        with dpg.child_window(width=300, height=93):
+            with dpg.group(tag="gr_name_file", horizontal=True):
+                dpg.add_text(default_value="Select file:")
+
+                # найти все файлы для печати и выбрать последний добавленный файл
+                available_files = tuple(os.listdir("results"))
+
+                dpg.add_combo(available_files, default_value=available_files[-1] if len(available_files) > 0 else "",
+                              tag="file_selection")
+            dpg.add_button(label="Print selected file", tag="print_selected_file", callback=print_excel_file,
+                           height=25, width=150)
+            dpg.add_button(label="Close", tag="close_w_printing_result", callback=close_w_printing_result,
+                           height=25, width=150)
+
+
 # Инициализация шрифтов
 from init_fonts import big_default_font, arial
 
@@ -295,6 +321,7 @@ with dpg.window(tag="primary_window") as primary_window:
         with dpg.group(tag="group_buttons"):
             dpg.add_button(label='Start Testing', callback=start_all_tests, width=184, height=30)
             dpg.add_button(label="Configure Tests", callback=configure_tests, width=184, height=30)
+            dpg.add_button(label="Print results", callback=printing_results, width=184, height=30)
             dpg.add_button(label="Exit", callback=close_main_window, width=184, height=30)
 
 dpg.bind_item_theme(primary_window, default_theme)  # Изменение цвета primary_window
